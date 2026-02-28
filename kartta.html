@@ -74,13 +74,33 @@
                 };
             },
             onEachFeature: function(feature, layer) {
-                layer.bindPopup(
-                    '<div class="popup-content">' +
+                var popupContent = '<div class="popup-content">' +
                     '<h3>' + feature.properties.postinumer + '</h3>' +
                     '<div class="price">' + feature.properties.price.toLocaleString() + ' €/m²</div>' +
                     '<div class="details">' + feature.properties.name + '</div>' +
-                    '</div>'
-                );
+                    '</div>';
+                layer.bindPopup(popupContent);
+                
+                // Hover effects
+                layer.on({
+                    mouseover: function(e) {
+                        var layer = e.target;
+                        layer.setStyle({
+                            weight: 3,
+                            fillOpacity: 0.9
+                        });
+                        layer.openPopup();
+                    },
+                    mouseout: function(e) {
+                        var layer = e.target;
+                        layer.setStyle({
+                            weight: 1,
+                            fillOpacity: 0.7
+                        });
+                        layer.closePopup();
+                    }
+                });
+                
                 layer.postcode = feature.properties.postinumer;
             }
         }).addTo(map);
