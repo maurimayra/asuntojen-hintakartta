@@ -1,0 +1,7 @@
+# Python-riippuvuudet asuntojen hintakartta -projektille
+
+# HTTP-pyynnöt (Tilastokeskus API, Paituli WFS)
+requests>=2.31.0
+
+# JSON-datan käsittely on sisäänrakennettu Pythonissa
+# Ei vaadi erillistä pakettia

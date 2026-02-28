@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Generoituvat datatiedostot
+asuntohinnat.json
+postinumerot_hinnat.geojson
+postinumerokoordinaatit.json
+bbox_data.json
+
+# Generoituvat HTML-kartat
+kartta.html
+index.html
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
