@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asuntojen hintakartta 2025</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        h1 { color: #333; }
+        .stats { display: flex; gap: 20px; margin: 20px 0; flex-wrap: wrap; }
+        .stat-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); min-width: 200px; }
+        .stat-card h3 { margin: 0 0 10px 0; color: #666; font-size: 14px; }
+        .stat-card .value { font-size: 28px; font-weight: bold; color: #333; }
+        .city-section { margin: 30px 0; }
+        .city-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .city-header h2 { margin: 0; }
+        .city-stats { color: #666; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; font-weight: 600; color: #666; }
+        tr:hover { background: #f8f9fa; }
+        .price { font-weight: 600; }
+        .price-high { color: #e74c3c; }
+        .price-medium { color: #f39c12; }
+        .price-low { color: #27ae60; }
+        .legend { display: flex; gap: 15px; margin: 20px 0; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .legend-color { width: 20px; height: 20px; border-radius: 3px; }
+        .search { margin: 20px 0; }
+        .search input { padding: 10px 15px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; width: 300px; }
+        @media (max-width: 768px) { .search input { width: 100%; } }
+    </style>
+</head>
+<body>
+    <h1>🏠 Asuntojen keskihintakartta 2025</h1>
+    <p>Vanhojen osakeasuntojen neliöhinnat postinumeroalueittain (EUR/m²)</p>
+    
+    <div class="stats">
+        <div class="stat-card">
+            <h3>Postinumeroalueita</h3>
+            <div class="value">770</div>
+        </div>
+        <div class="stat-card">
+            <h3>Keskihinta</h3>
+            <div class="value">2,072 €/m²</div>
+        </div>
+        <div class="stat-card">
+            <h3>Kallein</h3>
+            <div class="value" style="color: #e74c3c;">4,590 €/m²</div>
+        </div>
+        <div class="stat-card">
+            <h3>Halvin</h3>
+            <div class="value" style="color: #27ae60;">307 €/m²</div>
+        </div>
+    </div>
+    
+    <div class="search">
+        <input type="text" id="searchInput" placeholder="Hae postinumeroa tai aluetta..." onkeyup="filterTable()">
+    </div>
+    
+    <div class="legend">
+        <div class="legend-item"><div class="legend-color" style="background: #e74c3c;"></div> Yli 5000 €/m²</div>
+        <div class="legend-item"><div class="legend-color" style="background: #f39c12;"></div> 3000-5000 €/m²</div>
+        <div class="legend-item"><div class="legend-color" style="background: #f1c40f;"></div> 2000-3000 €/m²</div>
+        <div class="legend-item"><div class="legend-color" style="background: #27ae60;"></div> Alle 2000 €/m²</div>
+    </div>
+
+    <div class="city-section">
+        <div class="city-header">
+            <h2>🏙️ Helsinki</h2>
+            <div class="city-stats">
+                Keskihinta: <strong>4,590 €/m²</strong> | 
+                Alueita: 78
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Postinumero</th>
+                    <th>Alue</th>
+                    <th>Hinta €/m²</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>00140</td>
+                    <td>00140  Kaivopuisto - Ullanlinna (Helsinki)</td>
+                    <td class="price price-high">8,611</td>
+                </tr>
+
+                <tr>
+                    <td>00120</td>
+                    <td>00120  Punavuori - Bulevardi (Helsinki)</td>
+                    <td class="price price-high">8,345</td>
+                </tr>
+
+                <tr>
+                    <td>00150</td>
+                    <td>00150  Punavuori - Eira - Hernesaari (Helsinki)</td>
+                    <td class="price price-high">8,211</td>
+                </tr>
+
+                <tr>
+                    <td>00540</td>
+                    <td>00540  Kalasatama - Sompasaari (Helsinki)</td>
+                    <td class="price price-high">8,125</td>
+                </tr>
+
+                <tr>
+                    <td>00130</td>
+                    <td>00130  Kaartinkaupunki (Helsinki)</td>
+                    <td class="price price-high">7,617</td>
+                </tr>
+
+                <tr>
+                    <td>00580</td>
+                    <td>00580  Kalasatama - Kyläsaari (Helsinki)</td>
+                    <td class="price price-high">7,534</td>
+                </tr>
+
+                <tr>
+                    <td>00160</td>
+                    <td>00160  Katajanokka (Helsinki)</td>
+                    <td class="price price-high">7,387</td>
+                </tr>
+
+                <tr>
+                    <td>00100</td>
+                    <td>00100  Helsinki keskusta - Etu-Töölö (Helsinki)</td>
+                    <td class="price price-high">7,344</td>
+                </tr>
+
+                <tr>
+                    <td>00170</td>
+                    <td>00170  Kruununhaka (Helsinki)</td>
+                    <td class="price price-high">7,328</td>
+                </tr>
+
+                <tr>
+                    <td>00220</td>
+                    <td>00220  Jätkäsaari (Helsinki)</td>
+                    <td class="price price-high">7,235</td>
+                </tr>
+
+                <tr>
+                    <td>00260</td>
+                    <td>00260  Keski-Töölö (Helsinki)</td>
+                    <td class="price price-high">7,074</td>
+                </tr>
+
+                <tr>
+                    <td>00180</td>
+                    <td>00180  Kamppi - Ruoholahti (Helsinki)</td>
+                    <td class="price price-high">6,815</td>
+                </tr>
+
+                <tr>
+                    <td>00200</td>
+                    <td>00200  Pohjois-Lauttasaari (Helsinki)</td>
+                    <td class="price price-high">6,648</td>
+                </tr>
+
+                <tr>
+                    <td>00330</td>
+                    <td>00330  Munkkiniemi (Helsinki)</td>
+                    <td class="price price-high">6,412</td>
+                </tr>
+
+                <tr>
+                    <td>00250</td>
+                    <td>00250  Taka-Töölö (Helsinki)</td>
+                    <td class="price price-high">6,362</td>
+                </tr>
+
+                <tr>
+                    <td>00210</td>
+                    <td>00210  Vattuniemi (Helsinki)</td>
+                    <td class="price price-high">6,184</td>
+                </tr>
+
+                <tr>
+                    <td>00520</td>
+                    <td>00520  Itä- ja Keski-Pasila (Helsinki)</td>
+                    <td class="price price-high">5,742</td>
+                </tr>
+
+                <tr>
+                    <td>00270</td>
+                    <td>00270  Pohjois-Meilahti (Helsinki)</td>
+                    <td class="price price-high">5,726</td>
+                </tr>
+
+                <tr>
+                    <td>00530</td>
+                    <td>00530  Kallio (Helsinki)</td>
+                    <td class="price price-high">5,685</td>
+                </tr>
+
+                <tr>
+                    <td>00570</td>
+                    <td>00570  Kulosaari (Helsinki)</td>
+                    <td class="price price-high">5,620</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="city-section">
+        <div class="city-header">
+            <h2>🏙️ Kauniainen</h2>
+            <div class="city-stats">
+                Keskihinta: <strong>4,334 €/m²</strong> | 
+                Alueita: 1
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Postinumero</th>
+                    <th>Alue</th>
+                    <th>Hinta €/m²</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>02700</td>
+                    <td>02700  Kauniainen (Kauniainen)</td>
+                    <td class="price price-medium">4,334</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="city-section">
+        <div class="city-header">
+            <h2>🏙️ Espoo</h2>
+            <div class="city-stats">
+                Keskihinta: <strong>3,790 €/m²</strong> | 
+                Alueita: 41
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Postinumero</th>
+                    <th>Alue</th>
+                    <th>Hinta €/m²</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>02100</td>
+                    <td>02100  Tapiola (Espoo)</td>
+                    <td class="price price-high">5,506</td>
+                </tr>
+
+                <tr>
+                    <td>02110</td>
+                    <td>02110  Otsolahti (Espoo)</td>
+                    <td class="price price-high">5,091</td>
+                </tr>
+
+                <tr>
+                    <td>02120</td>
+                    <td>02120  Länsikorkee-Suvikumpu (Espoo)</td>
+                    <td class="price price-high">5,040</td>
+                </tr>
+
+                <tr>
+                    <td>02160</td>
+                    <td>02160  Westend (Espoo)</td>
+                    <td class="price price-high">5,023</td>
+                </tr>
+
+                <tr>
+                    <td>02200</td>
+                    <td>02200  Niittykumpu (Espoo)</td>
+                    <td class="price price-medium">4,912</td>
+                </tr>
+
+                <tr>
+                    <td>02130</td>
+                    <td>02130  Pohjois-Tapiola (Espoo)</td>
+                    <td class="price price-medium">4,531</td>
+                </tr>
+
+                <tr>
+                    <td>02170</td>
+                    <td>02170  Haukilahti (Espoo)</td>
+                    <td class="price price-medium">4,414</td>
+                </tr>
+
+                <tr>
+                    <td>02150</td>
+                    <td>02150  Otaniemi (Espoo)</td>
+                    <td class="price price-medium">4,405</td>
+                </tr>
+
+                <tr>
+                    <td>02680</td>
+                    <td>02680  Uusmäki (Espoo)</td>
+                    <td class="price price-medium">4,258</td>
+                </tr>
+
+                <tr>
+                    <td>02230</td>
+                    <td>02230  Matinkylä (Espoo)</td>
+                    <td class="price price-medium">4,232</td>
+                </tr>
+
+                <tr>
+                    <td>02250</td>
+                    <td>02250  Henttaa (Espoo)</td>
+                    <td class="price price-medium">4,230</td>
+                </tr>
+
+                <tr>
+                    <td>02280</td>
+                    <td>02280  Malminmäki-Eestinlaakso (Espoo)</td>
+                    <td class="price price-medium">4,214</td>
+                </tr>
+
+                <tr>
+                    <td>02330</td>
+                    <td>02330  Saunalahti-Kattilalaakso (Espoo)</td>
+                    <td class="price price-medium">4,133</td>
+                </tr>
+
+                <tr>
+                    <td>02610</td>
+                    <td>02610  Kilo (Espoo)</td>
+                    <td class="price price-medium">4,122</td>
+                </tr>
+
+                <tr>
+                    <td>02600</td>
+                    <td>02600  Etelä-Leppävaara (Espoo)</td>
+                    <td class="price price-medium">4,111</td>
+                </tr>
+
+                <tr>
+                    <td>02140</td>
+                    <td>02140  Laajalahti (Espoo)</td>
+                    <td class="price price-medium">4,060</td>
+                </tr>
+
+                <tr>
+                    <td>02180</td>
+                    <td>02180  Mankkaa (Espoo)</td>
+                    <td class="price price-medium">4,027</td>
+                </tr>
+
+                <tr>
+                    <td>02240</td>
+                    <td>02240  Friisilä (Espoo)</td>
+                    <td class="price price-medium">3,940</td>
+                </tr>
+
+                <tr>
+                    <td>02820</td>
+                    <td>02820  Nupuri-Nuuksio (Espoo)</td>
+                    <td class="price price-medium">3,848</td>
+                </tr>
+
+                <tr>
+                    <td>02650</td>
+                    <td>02650  Pohjois-Leppävaara (Espoo)</td>
+                    <td class="price price-medium">3,802</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="city-section">
+        <div class="city-header">
+            <h2>🏙️ Tampere</h2>
+            <div class="city-stats">
+                Keskihinta: <strong>2,936 €/m²</strong> | 
+                Alueita: 32
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Postinumero</th>
+                    <th>Alue</th>
+                    <th>Hinta €/m²</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>33180</td>
+                    <td>33180  Lapinniemi-Käpylä (Tampere)</td>
+                    <td class="price price-high">5,508</td>
+                </tr>
+
+                <tr>
+                    <td>33100</td>
+                    <td>33100  Tampere Keskus (Tampere)</td>
+                    <td class="price price-medium">4,029</td>
+                </tr>
+
+                <tr>
+                    <td>33210</td>
+                    <td>33210  Itä-Amuri-Tammerkoski (Tampere)</td>
+                    <td class="price price-medium">3,929</td>
+                </tr>
+
+                <tr>
+                    <td>33200</td>
+                    <td>33200  Tampere Keskus Läntinen (Tampere)</td>
+                    <td class="price price-medium">3,899</td>
+                </tr>
+
+                <tr>
+                    <td>33230</td>
+                    <td>33230  Länsi-Amuri (Tampere)</td>
+                    <td class="price price-medium">3,780</td>
+                </tr>
+
+                <tr>
+                    <td>33540</td>
+                    <td>33540  Kaleva (Tampere)</td>
+                    <td class="price price-medium">3,700</td>
+                </tr>
+
+                <tr>
+                    <td>33250</td>
+                    <td>33250  Pispala (Tampere)</td>
+                    <td class="price price-medium">3,672</td>
+                </tr>
+
+                <tr>
+                    <td>33870</td>
+                    <td>33870  Vuores (Tampere)</td>
+                    <td class="price price-medium">3,502</td>
+                </tr>
+
+                <tr>
+                    <td>33500</td>
+                    <td>33500  Osmonmäki-Petsamo (Tampere)</td>
+                    <td class="price price-medium">3,484</td>
+                </tr>
+
+                <tr>
+                    <td>33400</td>
+                    <td>33400  Luoteis-Tampere (Tampere)</td>
+                    <td class="price price-medium">3,468</td>
+                </tr>
+
+                <tr>
+                    <td>33900</td>
+                    <td>33900  Härmälä-Rantaperkiö (Tampere)</td>
+                    <td class="price price-medium">3,301</td>
+                </tr>
+
+                <tr>
+                    <td>33240</td>
+                    <td>33240  Tahmela (Tampere)</td>
+                    <td class="price price-medium">3,276</td>
+                </tr>
+
+                <tr>
+                    <td>33730</td>
+                    <td>33730  Leinola-Vehmainen (Tampere)</td>
+                    <td class="price price-medium">3,197</td>
+                </tr>
+
+                <tr>
+                    <td>33700</td>
+                    <td>33700  Messukylä (Tampere)</td>
+                    <td class="price price-medium">3,074</td>
+                </tr>
+
+                <tr>
+                    <td>33520</td>
+                    <td>33520  Keskussairaala-alue-Kauppi (Tampere)</td>
+                    <td class="price price-medium">3,055</td>
+                </tr>
+
+                <tr>
+                    <td>33530</td>
+                    <td>33530  Kissanmaa (Tampere)</td>
+                    <td class="price ">2,904</td>
+                </tr>
+
+                <tr>
+                    <td>33800</td>
+                    <td>33800  Nekala (Tampere)</td>
+                    <td class="price ">2,752</td>
+                </tr>
+
+                <tr>
+                    <td>33820</td>
+                    <td>33820  Koivistonkylä (Tampere)</td>
+                    <td class="price ">2,691</td>
+                </tr>
+
+                <tr>
+                    <td>33560</td>
+                    <td>33560  Takahuhti (Tampere)</td>
+                    <td class="price ">2,681</td>
+                </tr>
+
+                <tr>
+                    <td>33270</td>
+                    <td>33270  Epilä (Tampere)</td>
+                    <td class="price ">2,669</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="city-section">
+        <div class="city-header">
+            <h2>🏙️ Vantaa</h2>
+            <div class="city-stats">
+                Keskihinta: <strong>2,872 €/m²</strong> | 
+                Alueita: 29
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Postinumero</th>
+                    <th>Alue</th>
+                    <th>Hinta €/m²</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>01510</td>
+                    <td>01510  Kirkonkylä-Veromäki (Vantaa)</td>
+                    <td class="price price-medium">4,031</td>
+                </tr>
+
+                <tr>
+                    <td>01520</td>
+                    <td>01520  Tammisto (Vantaa)</td>
+                    <td class="price price-medium">3,844</td>
+                </tr>
+
+                <tr>
+                    <td>01690</td>
+                    <td>01690  Ylästö (Vantaa)</td>
+                    <td class="price price-medium">3,843</td>
+                </tr>
+
+                <tr>
+                    <td>01340</td>
+                    <td>01340  Leinelä (Vantaa)</td>
+                    <td class="price price-medium">3,673</td>
+                </tr>
+
+                <tr>
+                    <td>01700</td>
+                    <td>01700  Kivistö (Vantaa)</td>
+                    <td class="price price-medium">3,649</td>
+                </tr>
+
+                <tr>
+                    <td>01380</td>
+                    <td>01380  Kuusikko-Hakkila (Vantaa)</td>
+                    <td class="price price-medium">3,610</td>
+                </tr>
+
+                <tr>
+                    <td>01300</td>
+                    <td>01300  Tikkurila (Vantaa)</td>
+                    <td class="price price-medium">3,537</td>
+                </tr>
+
+                <tr>
+                    <td>01490</td>
+                    <td>01490  Nikinmäki (Vantaa)</td>
+                    <td class="price price-medium">3,418</td>
+                </tr>
+
+                <tr>
+                    <td>01400</td>
+                    <td>01400  Rekola (Vantaa)</td>
+                    <td class="price price-medium">3,258</td>
+                </tr>
+
+                <tr>
+                    <td>01370</td>
+                    <td>01370  Jokiniemi (Vantaa)</td>
+                    <td class="price price-medium">3,143</td>
+                </tr>
+
+                <tr>
+                    <td>01260</td>
+                    <td>01260  Itä-Hakkila (Vantaa)</td>
+                    <td class="price price-medium">3,073</td>
+                </tr>
+
+                <tr>
+                    <td>01660</td>
+                    <td>01660  Varisto (Vantaa)</td>
+                    <td class="price price-medium">3,023</td>
+                </tr>
+
+                <tr>
+                    <td>01640</td>
+                    <td>01640  Hämevaara (Vantaa)</td>
+                    <td class="price price-medium">3,003</td>
+                </tr>
+
+                <tr>
+                    <td>01670</td>
+                    <td>01670  Vantaanlaakso (Vantaa)</td>
+                    <td class="price ">2,885</td>
+                </tr>
+
+                <tr>
+                    <td>01610</td>
+                    <td>01610  Kaivoksela (Vantaa)</td>
+                    <td class="price ">2,841</td>
+                </tr>
+
+                <tr>
+                    <td>01230</td>
+                    <td>01230  Vaarala (Vantaa)</td>
+                    <td class="price ">2,825</td>
+                </tr>
+
+                <tr>
+                    <td>01390</td>
+                    <td>01390  Ruskeasanta-Ilola (Vantaa)</td>
+                    <td class="price ">2,781</td>
+                </tr>
+
+                <tr>
+                    <td>01350</td>
+                    <td>01350  Hiekkaharju (Vantaa)</td>
+                    <td class="price ">2,746</td>
+                </tr>
+
+                <tr>
+                    <td>01730</td>
+                    <td>01730  Vantaanpuisto (Vantaa)</td>
+                    <td class="price ">2,652</td>
+                </tr>
+
+                <tr>
+                    <td>01630</td>
+                    <td>01630  Hämeenkylä (Vantaa)</td>
+                    <td class="price ">2,591</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="city-section">
+        <div class="city-header">
+            <h2>🏙️ Pirkkala</h2>
+            <div class="city-stats">
+                Keskihinta: <strong>2,785 €/m²</strong> | 
+                Alueita: 2
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Postinumero</th>
+                    <th>Alue</th>
+                    <th>Hinta €/m²</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>33960</td>
+                    <td>33960  Suuppa (Pirkkala)</td>
+                    <td class="price ">2,847</td>
+                </tr>
+
+                <tr>
+                    <td>33950</td>
+                    <td>33950  Killo (Pirkkala)</td>
+                    <td class="price ">2,724</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="city-section">
+        <div class="city-header">
+            <h2>🏙️ Kittilä</h2>
+            <div class="city-stats">
+                Keskihinta: <strong>2,660 €/m²</strong> | 
+                Alueita: 1
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Postinumero</th>
+                    <th>Alue</th>
+                    <th>Hinta €/m²</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>99130</td>
+                    <td>99130  Sirkka-Rauhala (Kittilä)</td>
+                    <td class="price ">2,660</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="city-section">
+        <div class="city-header">
+            <h2>🏙️ Kirkkonummi</h2>
+            <div class="city-stats">
+                Keskihinta: <strong>2,623 €/m²</strong> | 
+                Alueita: 8
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Postinumero</th>
+                    <th>Alue</th>
+                    <th>Hinta €/m²</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>02390</td>
+                    <td>02390  Sarvvik (Kirkkonummi)</td>
+                    <td class="price price-medium">3,904</td>
+                </tr>
+
+                <tr>
+                    <td>02450</td>
+                    <td>02450  Sundsberg (Kirkkonummi)</td>
+                    <td class="price price-medium">3,829</td>
+                </tr>
+
+                <tr>
+                    <td>02480</td>
+                    <td>02480  Porkkala (Kirkkonummi)</td>
+                    <td class="price ">2,713</td>
+                </tr>
+
+                <tr>
+                    <td>02880</td>
+                    <td>02880  Veikkola (Kirkkonummi)</td>
+                    <td class="price ">2,462</td>
+                </tr>
+
+                <tr>
+                    <td>02430</td>
+                    <td>02430  Masala (Kirkkonummi)</td>
+                    <td class="price ">2,272</td>
+                </tr>
+
+                <tr>
+                    <td>02460</td>
+                    <td>02460  Kantvik (Kirkkonummi)</td>
+                    <td class="price ">2,243</td>
+                </tr>
+
+                <tr>
+                    <td>02400</td>
+                    <td>02400  Kirkkonummi Keskus (Kirkkonummi)</td>
+                    <td class="price ">2,189</td>
+                </tr>
+
+                <tr>
+                    <td>02410</td>
+                    <td>02410  Gesterby (Kirkkonummi)</td>
+                    <td class="price price-low">1,375</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="city-section">
+        <div class="city-header">
+            <h2>🏙️ Sipoo</h2>
+            <div class="city-stats">
+                Keskihinta: <strong>2,551 €/m²</strong> | 
+                Alueita: 2
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Postinumero</th>
+                    <th>Alue</th>
+                    <th>Hinta €/m²</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>01150</td>
+                    <td>01150  Söderkulla (Sipoo)</td>
+                    <td class="price ">2,745</td>
+                </tr>
+
+                <tr>
+                    <td>04130</td>
+                    <td>04130  Sipoo (Sipoo)</td>
+                    <td class="price ">2,357</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="city-section">
+        <div class="city-header">
+            <h2>🏙️ Hanko</h2>
+            <div class="city-stats">
+                Keskihinta: <strong>2,446 €/m²</strong> | 
+                Alueita: 2
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Postinumero</th>
+                    <th>Alue</th>
+                    <th>Hinta €/m²</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>10900</td>
+                    <td>10900  Hanko Keskus (Hanko)</td>
+                    <td class="price ">2,601</td>
+                </tr>
+
+                <tr>
+                    <td>10960</td>
+                    <td>10960  Hanko Pohjoinen (Hanko)</td>
+                    <td class="price ">2,292</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="city-section">
+        <div class="city-header">
+            <h2>🏙️ Järvenpää</h2>
+            <div class="city-stats">
+                Keskihinta: <strong>2,425 €/m²</strong> | 
+                Alueita: 6
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Postinumero</th>
+                    <th>Alue</th>
+                    <th>Hinta €/m²</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>04420</td>
+                    <td>04420  Kyrölä (Järvenpää)</td>
+                    <td class="price ">2,850</td>
+                </tr>
+
+                <tr>
+                    <td>04430</td>
+                    <td>04430  Kinnari-Mikonkorpi (Järvenpää)</td>
+                    <td class="price ">2,650</td>
+                </tr>
+
+                <tr>
+                    <td>04400</td>
+                    <td>04400  Loutti (Järvenpää)</td>
+                    <td class="price ">2,546</td>
+                </tr>
+
+                <tr>
+                    <td>04460</td>
+                    <td>04460  Nummenkylä (Järvenpää)</td>
+                    <td class="price ">2,517</td>
+                </tr>
+
+                <tr>
+                    <td>04410</td>
+                    <td>04410  Järvenpää Keskus (Järvenpää)</td>
+                    <td class="price ">2,402</td>
+                </tr>
+
+                <tr>
+                    <td>04440</td>
+                    <td>04440  Jamppa (Järvenpää)</td>
+                    <td class="price price-low">1,584</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="city-section">
+        <div class="city-header">
+            <h2>🏙️ Lieto</h2>
+            <div class="city-stats">
+                Keskihinta: <strong>2,412 €/m²</strong> | 
+                Alueita: 4
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Postinumero</th>
+                    <th>Alue</th>
+                    <th>Hinta €/m²</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>21410</td>
+                    <td>21410  Vanhalinna (Lieto)</td>
+                    <td class="price price-medium">3,324</td>
+                </tr>
+
+                <tr>
+                    <td>21350</td>
+                    <td>21350  Ilmarinen (Lieto)</td>
+                    <td class="price price-medium">3,020</td>
+                </tr>
+
+                <tr>
+                    <td>21420</td>
+                    <td>21420  Lieto Keskus (Lieto)</td>
+                    <td class="price ">2,276</td>
+                </tr>
+
+                <tr>
+                    <td>21450</td>
+                    <td>21450  Tarvasjoki Keskus (Lieto)</td>
+                    <td class="price price-low">1,029</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="city-section">
+        <div class="city-header">
+            <h2>🏙️ Lempäälä</h2>
+            <div class="city-stats">
+                Keskihinta: <strong>2,411 €/m²</strong> | 
+                Alueita: 4
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Postinumero</th>
+                    <th>Alue</th>
+                    <th>Hinta €/m²</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>37560</td>
+                    <td>37560  Kulju (Lempäälä)</td>
+                    <td class="price ">2,894</td>
+                </tr>
+
+                <tr>
+                    <td>37550</td>
+                    <td>37550  Kuivaspää (Lempäälä)</td>
+                    <td class="price ">2,753</td>
+                </tr>
+
+                <tr>
+                    <td>37500</td>
+                    <td>37500  Lempäälä Keskus (Lempäälä)</td>
+                    <td class="price ">2,182</td>
+                </tr>
+
+                <tr>
+                    <td>33880</td>
+                    <td>33880  Höytämö (Lempäälä)</td>
+                    <td class="price price-low">1,817</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="city-section">
+        <div class="city-header">
+            <h2>🏙️ Turku</h2>
+            <div class="city-stats">
+                Keskihinta: <strong>2,396 €/m²</strong> | 
+                Alueita: 20
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Postinumero</th>
+                    <th>Alue</th>
+                    <th>Hinta €/m²</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>20520</td>
+                    <td>20520  Kupittaa (Turku)</td>
+                    <td class="price price-medium">4,170</td>
+                </tr>
+
+                <tr>
+                    <td>20100</td>
+                    <td>20100  Turku Keskus (Turku)</td>
+                    <td class="price price-medium">3,747</td>
+                </tr>
+
+                <tr>
+                    <td>20810</td>
+                    <td>20810  Martti-Korppolaismäki (Turku)</td>
+                    <td class="price price-medium">3,624</td>
+                </tr>
+
+                <tr>
+                    <td>20500</td>
+                    <td>20500  Vesilinna (Turku)</td>
+                    <td class="price price-medium">3,548</td>
+                </tr>
+
+                <tr>
+                    <td>20700</td>
+                    <td>20700  Vartiovuori-Samppalinna (Turku)</td>
+                    <td class="price price-medium">3,515</td>
+                </tr>
+
+                <tr>
+                    <td>20900</td>
+                    <td>20900  Moikoinen-Pikisaari (Turku)</td>
+                    <td class="price price-medium">3,046</td>
+                </tr>
+
+                <tr>
+                    <td>20300</td>
+                    <td>20300  Pohjola-Kastu (Turku)</td>
+                    <td class="price ">2,670</td>
+                </tr>
+
+                <tr>
+                    <td>20540</td>
+                    <td>20540  Nummi-Ylioppilaskylä (Turku)</td>
+                    <td class="price ">2,649</td>
+                </tr>
+
+                <tr>
+                    <td>20200</td>
+                    <td>20200  Iso-Heikkilä (Turku)</td>
+                    <td class="price ">2,603</td>
+                </tr>
+
+                <tr>
+                    <td>20720</td>
+                    <td>20720  Vasaramäki (Turku)</td>
+                    <td class="price ">2,467</td>
+                </tr>
+
+                <tr>
+                    <td>20320</td>
+                    <td>20320  Kuninkoja-Mälikkälä (Turku)</td>
+                    <td class="price ">2,268</td>
+                </tr>
+
+                <tr>
+                    <td>20880</td>
+                    <td>20880  Uittamo (Turku)</td>
+                    <td class="price ">2,224</td>
+                </tr>
+
+                <tr>
+                    <td>20740</td>
+                    <td>20740  Ilpoinen-Harittu (Turku)</td>
+                    <td class="price ">2,024</td>
+                </tr>
+
+                <tr>
+                    <td>20380</td>
+                    <td>20380  Räntämäki-Saramäki (Turku)</td>
+                    <td class="price price-low">1,946</td>
+                </tr>
+
+                <tr>
+                    <td>20360</td>
+                    <td>20360  Runosmäki-Kärsämäki (Turku)</td>
+                    <td class="price price-low">1,513</td>
+                </tr>
+
+                <tr>
+                    <td>20610</td>
+                    <td>20610  Varissuo (Turku)</td>
+                    <td class="price price-low">1,391</td>
+                </tr>
+
+                <tr>
+                    <td>20750</td>
+                    <td>20750  Huhkola-Lauste-Vaala (Turku)</td>
+                    <td class="price price-low">1,236</td>
+                </tr>
+
+                <tr>
+                    <td>20460</td>
+                    <td>20460  Jäkärlä (Turku)</td>
+                    <td class="price price-low">1,148</td>
+                </tr>
+
+                <tr>
+                    <td>20240</td>
+                    <td>20240  Pansio-Perno (Turku)</td>
+                    <td class="price price-low">1,089</td>
+                </tr>
+
+                <tr>
+                    <td>20210</td>
+                    <td>20210  Pahaniemi (Turku)</td>
+                    <td class="price price-low">1,055</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="city-section">
+        <div class="city-header">
+            <h2>🏙️ Vesilahti</h2>
+            <div class="city-stats">
+                Keskihinta: <strong>2,362 €/m²</strong> | 
+                Alueita: 1
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Postinumero</th>
+                    <th>Alue</th>
+                    <th>Hinta €/m²</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>37470</td>
+                    <td>37470  Vesilahti Keskus (Vesilahti)</td>
+                    <td class="price ">2,362</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+    function filterTable() {
+        const input = document.getElementById('searchInput');
+        const filter = input.value.toLowerCase();
+        const tables = document.querySelectorAll('table');
+        
+        tables.forEach(table => {
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        });
+    }
+    </script>
+</body>
+</html>
