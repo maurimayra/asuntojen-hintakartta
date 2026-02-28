@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 """
-Asuntojen hintakartta - Polygon-versio GeoJSON:lla + vuosimuutos
+Asuntojen hintakartta - Polygon-versio
+- Vuodet 2009-2025
+- Talotyypit (kerrostalot, rivi/ketjutalot, pientalot, kaikki)
+- Mittarit (hinnat, kauppojen lukum.)
+- Vuosimuutokset
 """
 
 import json
+
+print("Ladataan dataa...")
 
 # Lataa asuntohintadata
 with open('asuntohinnat.json', 'r', encoding='utf-8') as f:
@@ -13,37 +19,49 @@ with open('asuntohinnat.json', 'r', encoding='utf-8') as f:
 with open('postinumerot_hinnat.geojson', 'r', encoding='utf-8') as f:
     geojson_data = json.load(f)
 
-# Hae kaikki vuodet
+# Hae metatiedot
 available_years = sorted(data['metadata']['years'])
+building_types = data['metadata']['building_types']
 latest_year = available_years[-1]
-prices = data['data'][latest_year]
 
-# Laske tilastot viimeisimmälle vuodelle
-price_values = [p['avg_price'] for p in prices.values()]
-avg_price = int(sum(price_values) / len(price_values))
-max_price = int(max(price_values))
-min_price = int(min(price_values))
+print(f"  Vuodet: {len(available_years)} ({min(available_years)}-{max(available_years)})")
+print(f"  Talotyypit: {len(building_types)}")
+print(f"  Postinumeroalueita: {len(geojson_data['features'])}")
 
-# Lisää hintadata GeoJSON-featureisiin kaikille vuosille
+# Lisää hintadata GeoJSON-featureisiin
+print("Yhdistetään dataa...")
 for feature in geojson_data['features']:
     postcode = feature['properties']['postinumer']
-    feature['properties']['prices'] = {}
-    for year in available_years:
-        if postcode in data['data'][year]:
-            feature['properties']['prices'][year] = int(data['data'][year][postcode]['avg_price'])
+    feature['properties']['data'] = {}
+    
+    # Lisää data jos postinumero löytyy
+    if postcode in data['data']:
+        feature['properties']['data'] = data['data'][postcode]['data']
+        # data-rakenne: {year: {building_type: {keskihinta_aritm_nw, lkm_julk20}}}
 
 # Luo JavaScript-muuttujat
 years_json = json.dumps(available_years)
-
-# Muunna GeoJSON JavaScript-muotoon
+building_types_json = json.dumps(building_types)
 geojson_json = json.dumps(geojson_data)
+
+# Laske oletustilastot (viimeisin vuosi, kerrostalo yksiöt, hinnat)
+default_prices = []
+for feature in geojson_data['features']:
+    if latest_year in feature['properties'].get('data', {}):
+        if '1' in feature['properties']['data'][latest_year]:
+            if 'keskihinta_aritm_nw' in feature['properties']['data'][latest_year]['1']:
+                default_prices.append(feature['properties']['data'][latest_year]['1']['keskihinta_aritm_nw'])
+
+avg_price = int(sum(default_prices) / len(default_prices)) if default_prices else 0
+max_price = int(max(default_prices)) if default_prices else 0
+min_price = int(min(default_prices)) if default_prices else 0
 
 html = f'''<!DOCTYPE html>
 <html lang="fi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asuntojen hintakartta {latest_year}</title>
+    <title>Asuntojen hintakartta 2009-{latest_year}</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
@@ -57,32 +75,28 @@ html = f'''<!DOCTYPE html>
         }}
         #header h1 {{ font-size: 24px; margin-bottom: 5px; }}
         #header p {{ opacity: 0.8; font-size: 14px; }}
+        #header .forecast-note {{ opacity: 0.7; font-size: 12px; font-style: italic; margin-top: 5px; }}
         
         #controls {{
             background: #2a5298;
             padding: 15px 20px;
             color: white;
             display: flex;
-            gap: 25px;
+            gap: 20px;
             align-items: center;
             flex-wrap: wrap;
         }}
-        #controls label {{ font-size: 13px; font-weight: 500; }}
+        #controls label {{ font-size: 13px; font-weight: 500; margin-right: 5px; }}
         #controls select {{
             padding: 6px 10px;
             border-radius: 4px;
             border: 1px solid #ddd;
             font-size: 14px;
-            margin-left: 8px;
         }}
         #controls .control-group {{
             display: flex;
             align-items: center;
-            gap: 15px;
-        }}
-        #controls input[type="radio"] {{
-            margin-left: 10px;
-            margin-right: 4px;
+            gap: 10px;
         }}
         #controls input[type="radio"] {{
             margin-left: 10px;
@@ -105,7 +119,7 @@ html = f'''<!DOCTYPE html>
         .stat-box .label {{ font-size: 12px; color: #666; }}
         .stat-box .value {{ font-size: 20px; font-weight: bold; }}
         
-        #map {{ height: calc(100vh - 230px); width: 100%; }}
+        #map {{ height: calc(100vh - 270px); width: 100%; }}
         
         .legend {{
             background: white;
@@ -127,7 +141,6 @@ html = f'''<!DOCTYPE html>
         .popup-content h3 {{ margin-bottom: 10px; color: #1e3c72; }}
         .popup-content .price {{ font-size: 24px; font-weight: bold; color: #27ae60; }}
         .popup-content .details {{ margin-top: 10px; font-size: 12px; color: #666; }}
-        .popup-content .year {{ color: #999; font-size: 11px; margin-top: 5px; }}
         
         #search-box {{
             position: absolute;
@@ -170,34 +183,53 @@ html = f'''<!DOCTYPE html>
 <body>
     <div id="header">
         <h1>🏠 Asuntojen hintakartta</h1>
-        <p>Vanhojen osakeasuntojen neliöhinnat ja vuosimuutokset | Tilastokeskus</p>
+        <p>Osakeasunnot 2009-{latest_year} | Tilastokeskus</p>
+        <p class="forecast-note">* Ennuste, laskettu viimeisen 5 vuoden trendin perusteella</p>
     </div>
     
     <div id="controls">
         <div class="control-group">
-            <input type="radio" id="mode-price" name="mode" value="price" checked onchange="updateMap()">
-            <label for="mode-price">Absoluuttinen hinta</label>
+            <label for="building-type-select">Huoneistotyyppi:</label>
+            <select id="building-type-select" onchange="updateMap()">
+                <option value="1">Kerrostalo yksiöt</option>
+                <option value="2">Kerrostalo kaksiot</option>
+                <option value="3">Kerrostalo kolmiot+</option>
+                <option value="5" selected>Rivitalot yhteensä</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="metric-select">Mittari:</label>
+            <select id="metric-select" onchange="updateMap()">
+                <option value="keskihinta_aritm_nw" selected>Neliöhinta (€/m²)</option>
+                <option value="lkm_julk20">Kauppojen lukumäärä</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <input type="radio" id="mode-absolute" name="mode" value="absolute" checked onchange="updateMap()">
+            <label for="mode-absolute">Absoluuttinen</label>
             
             <input type="radio" id="mode-change" name="mode" value="change" onchange="updateMap()">
-            <label for="mode-change">Vuosimuutos</label>
+            <label for="mode-change">Muutos-%</label>
         </div>
         
         <div class="control-group" id="year-selector-single">
             <label for="year-select">Vuosi:</label>
             <select id="year-select" onchange="updateMap()">
-                {chr(10).join(f'                <option value="{year}" {"selected" if year == latest_year else ""}>{year}</option>' for year in available_years)}
+                {chr(10).join(f'                <option value="{year}" {"selected" if year == latest_year else ""}>{year}{"*" if year == "2026" else ""}</option>' for year in available_years)}
             </select>
         </div>
         
         <div class="control-group" id="year-selector-range" style="display:none;">
             <label for="year-from">Alku:</label>
             <select id="year-from" onchange="updateMap()">
-                {chr(10).join(f'                <option value="{year}" {"selected" if year == available_years[0] else ""}>{year}</option>' for year in available_years)}
+                {chr(10).join(f'                <option value="{year}">{year}{"*" if year == "2026" else ""}</option>' for year in available_years)}
             </select>
             
             <label for="year-to">Loppu:</label>
             <select id="year-to" onchange="updateMap()">
-                {chr(10).join(f'                <option value="{year}" {"selected" if year == latest_year else ""}>{year}</option>' for year in available_years)}
+                {chr(10).join(f'                <option value="{year}" {"selected" if year == latest_year else ""}>{year}{"*" if year == "2026" else ""}</option>' for year in available_years)}
             </select>
         </div>
     </div>
@@ -228,7 +260,6 @@ html = f'''<!DOCTYPE html>
         <button onclick="map.setView([61.4978, 23.7608], 12)">Tampere</button>
         <button onclick="map.setView([60.4518, 22.6306], 12)">Turku</button>
         <button onclick="map.setView([65.0121, 25.4651], 12)">Oulu</button>
-        <button onclick="map.setView([60.9827, 25.6650], 12)">Lahti</button>
     </div>
     
     <div id="search-box">
@@ -239,19 +270,20 @@ html = f'''<!DOCTYPE html>
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        var map = L.map('map').setView([60.1699, 24.9384], 11);
+        var map = L.map('map').setView([60.1699, 24.9384], 8);
         
         L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{
             attribution: '© OpenStreetMap contributors'
         }}).addTo(map);
         
-        // GeoJSON data upotettu suoraan
+        // GeoJSON data
         var geojsonData = {geojson_json};
         var availableYears = {years_json};
+        var buildingTypes = {building_types_json};
         var geoJsonLayer;
         var currentLegend;
         
-        // Väri absoluuttiselle hinnalle
+        // Värit hinnoille  
         function getColorPrice(price) {{
             if (price > 8000) return '#8B0000';
             else if (price > 6000) return '#e74c3c';
@@ -262,23 +294,43 @@ html = f'''<!DOCTYPE html>
             else return '#2ecc71';
         }}
         
-        // Väri muutosprosentille
+        // Värit kauppojen lukumäärille
+        function getColorTransactions(count) {{
+            if (count > 100) return '#2ecc71';
+            else if (count > 50) return '#27ae60';
+            else if (count > 30) return '#9acd32';
+            else if (count > 20) return '#f1c40f';
+            else if (count > 10) return '#f39c12';
+            else if (count > 5) return '#e74c3c';
+            else return '#8B0000';
+        }}
+        
+        // Värit muutosprosentille
         function getColorChange(change) {{
-            if (change > 15) return '#8B0000';
-            else if (change > 10) return '#e74c3c';
-            else if (change > 5) return '#f39c12';
+            if (change > 15) return '#2ecc71';
+            else if (change > 10) return '#27ae60';
+            else if (change > 5) return '#9acd32';
             else if (change > 0) return '#f1c40f';
-            else if (change > -5) return '#9acd32';
-            else if (change > -10) return '#27ae60';
-            else return '#2ecc71';
+            else if (change > -5) return '#f39c12';
+            else if (change > -10) return '#e74c3c';
+            else return '#8B0000';
+        }}
+        
+        // Hae arvo datasta
+        function getValue(feature, year, buildingType, metric) {{
+            var data = feature.properties.data;
+            if (!data || !data[year] || !data[year][buildingType]) return null;
+            return data[year][buildingType][metric] || null;
         }}
         
         // Päivitä kartta
         function updateMap() {{
             var mode = document.querySelector('input[name="mode"]:checked').value;
+            var buildingType = document.getElementById('building-type-select').value;
+            var metric = document.getElementById('metric-select').value;
             
             // Näytä/piilota vuosivalitsimet
-            if (mode === 'price') {{
+            if (mode === 'absolute') {{
                 document.getElementById('year-selector-single').style.display = 'flex';
                 document.getElementById('year-selector-range').style.display = 'none';
             }} else {{
@@ -287,32 +339,30 @@ html = f'''<!DOCTYPE html>
             }}
             
             // Poista vanha layer
-            if (geoJsonLayer) {{
-                map.removeLayer(geoJsonLayer);
-            }}
-            if (currentLegend) {{
-                map.removeControl(currentLegend);
-            }}
+            if (geoJsonLayer) map.removeLayer(geoJsonLayer);
+            if (currentLegend) map.removeControl(currentLegend);
             
             // Luo uusi layer
-            if (mode === 'price') {{
-                createPriceMap();
+            if (mode === 'absolute') {{
+                createAbsoluteMap(buildingType, metric);
             }} else {{
-                createChangeMap();
+                createChangeMap(buildingType, metric);
             }}
             
             updateStats();
         }}
         
-        // Luo hintakartta
-        function createPriceMap() {{
+        // Luo absoluuttinen kartta
+        function createAbsoluteMap(buildingType, metric) {{
             var selectedYear = document.getElementById('year-select').value;
+            var isPrice = (metric === 'keskihinta_aritm_nw');
             
             geoJsonLayer = L.geoJSON(geojsonData, {{
                 style: function(feature) {{
-                    var price = feature.properties.prices[selectedYear];
+                    var value = getValue(feature, selectedYear, buildingType, metric);
+                    var color = value ? (isPrice ? getColorPrice(value) : getColorTransactions(value)) : '#ccc';
                     return {{
-                        fillColor: price ? getColorPrice(price) : '#ccc',
+                        fillColor: color,
                         fillOpacity: 0.7,
                         color: '#fff',
                         weight: 1,
@@ -321,61 +371,44 @@ html = f'''<!DOCTYPE html>
                 }},
                 onEachFeature: function(feature, layer) {{
                     var props = feature.properties;
-                    var price = props.prices[selectedYear];
+                    var value = getValue(feature, selectedYear, buildingType, metric);
                     
-                    if (price) {{
+                    if (value) {{
+                        var metricLabel = isPrice ? 'EUR/m²' : 'kpl';
                         var popupContent = '<div class="popup-content">' +
                             '<h3>' + props.postinumer + '</h3>' +
-                            '<div class="price">' + price.toLocaleString() + ' €/m²</div>' +
+                            '<div class="price">' + value.toLocaleString() + ' ' + metricLabel + '</div>' +
                             '<div class="details">' + props.name + '</div>' +
-                            '<div class="year">' + selectedYear + '</div>' +
+                            '<div class="details">' + selectedYear + ' | ' + buildingTypes[buildingType] + '</div>' +
                             '</div>';
                         layer.bindPopup(popupContent);
                     }}
                     
-                    // Hover-efektit
                     layer.on('mouseover', function(e) {{
-                        this.setStyle({{
-                            fillOpacity: 0.9,
-                            weight: 2
-                        }});
+                        this.setStyle({{ fillOpacity: 0.9, weight: 2 }});
                     }});
-                    
                     layer.on('mouseout', function(e) {{
                         geoJsonLayer.resetStyle(this);
                     }});
                 }}
             }}).addTo(map);
             
-            // Legenda hinnoille
-            currentLegend = L.control({{position: 'bottomright'}});
-            currentLegend.onAdd = function(map) {{
-                var div = L.DomUtil.create('div', 'legend');
-                div.innerHTML = '<h4>Hinta €/m²</h4>';
-                var grades = [0, 2000, 3000, 4000, 5000, 6000, 8000];
-                var labels = ['< 2000', '2000-3000', '3000-4000', '4000-5000', '5000-6000', '6000-8000', '> 8000'];
-                
-                for (var i = 0; i < grades.length; i++) {{
-                    div.innerHTML += '<div class="legend-item"><div class="legend-color" style="background:' + 
-                        getColorPrice(grades[i] + 1) + '"></div>' + labels[i] + '</div>';
-                }}
-                return div;
-            }};
-            currentLegend.addTo(map);
+            // Legenda
+            createLegend(metric);
         }}
         
         // Luo muutoskartta
-        function createChangeMap() {{
+        function createChangeMap(buildingType, metric) {{
             var yearFrom = document.getElementById('year-from').value;
             var yearTo = document.getElementById('year-to').value;
             
             geoJsonLayer = L.geoJSON(geojsonData, {{
                 style: function(feature) {{
-                    var priceFrom = feature.properties.prices[yearFrom];
-                    var priceTo = feature.properties.prices[yearTo];
+                    var valueFrom = getValue(feature, yearFrom, buildingType, metric);
+                    var valueTo = getValue(feature, yearTo, buildingType, metric);
                     
-                    if (priceFrom && priceTo) {{
-                        var change = ((priceTo - priceFrom) / priceFrom) * 100;
+                    if (valueFrom && valueTo && valueFrom > 0) {{
+                        var change = ((valueTo - valueFrom) / valueFrom) * 100;
                         return {{
                             fillColor: getColorChange(change),
                             fillOpacity: 0.7,
@@ -395,33 +428,31 @@ html = f'''<!DOCTYPE html>
                 }},
                 onEachFeature: function(feature, layer) {{
                     var props = feature.properties;
-                    var priceFrom = props.prices[yearFrom];
-                    var priceTo = props.prices[yearTo];
+                    var valueFrom = getValue(feature, yearFrom, buildingType, metric);
+                    var valueTo = getValue(feature, yearTo, buildingType, metric);
                     
-                    if (priceFrom && priceTo) {{
-                        var change = ((priceTo - priceFrom) / priceFrom) * 100;
-                        var absChange = priceTo - priceFrom;
+                    if (valueFrom && valueTo && valueFrom > 0) {{
+                        var change = ((valueTo - valueFrom) / valueFrom) * 100;
+                        var absChange = valueTo - valueFrom;
                         var changeSign = change >= 0 ? '+' : '';
+                        var isPrice = (metric === 'keskihinta_aritm_nw');
+                        var metricLabel = isPrice ? 'EUR/m²' : 'kpl';
                         
                         var popupContent = '<div class="popup-content">' +
                             '<h3>' + props.postinumer + '</h3>' +
                             '<div class="price">' + changeSign + change.toFixed(1) + ' %</div>' +
                             '<div class="details">' + props.name + '</div>' +
-                            '<div class="year">' + yearFrom + ': ' + priceFrom.toLocaleString() + ' €/m²<br>' +
-                            yearTo + ': ' + priceTo.toLocaleString() + ' €/m²<br>' +
-                            'Muutos: ' + changeSign + absChange.toLocaleString() + ' €/m²</div>' +
+                            '<div class="details">' + yearFrom + ': ' + valueFrom.toLocaleString() + ' ' + metricLabel + '<br>' +
+                            yearTo + ': ' + valueTo.toLocaleString() + ' ' + metricLabel + '<br>' +
+                            'Muutos: ' + changeSign + absChange.toLocaleString() + ' ' + metricLabel + '</div>' +
+                            '<div class="details">' + buildingTypes[buildingType] + '</div>' +
                             '</div>';
                         layer.bindPopup(popupContent);
                     }}
                     
-                    // Hover-efektit
                     layer.on('mouseover', function(e) {{
-                        this.setStyle({{
-                            fillOpacity: 0.9,
-                            weight: 2
-                        }});
+                        this.setStyle({{ fillOpacity: 0.9, weight: 2 }});
                     }});
-                    
                     layer.on('mouseout', function(e) {{
                         geoJsonLayer.resetStyle(this);
                     }});
@@ -429,17 +460,51 @@ html = f'''<!DOCTYPE html>
             }}).addTo(map);
             
             // Legenda muutoksille
+            createChangeLegend();
+        }}
+        
+        // Luo legenda
+        function createLegend(metric) {{
             currentLegend = L.control({{position: 'bottomright'}});
             currentLegend.onAdd = function(map) {{
                 var div = L.DomUtil.create('div', 'legend');
-                div.innerHTML = '<h4>Muutos %</h4>';
-                var grades = [-20, -10, -5, 0, 5, 10, 15];
-                var labels = ['< -10%', '-10% - -5%', '-5% - 0%', '0% - 5%', '5% - 10%', '10% - 15%', '> 15%'];
                 
+                if (metric === 'keskihinta_aritm_nw') {{
+                    div.innerHTML = '<h4>Hinta €/m²</h4>';
+                    var grades = [0, 2000, 3000, 4000, 5000, 6000, 8000];
+                    var labels = ['< 2000', '2000-3000', '3000-4000', '4000-5000', '5000-6000', '6000-8000', '> 8000'];
+                    for (var i = 0; i < grades.length; i++) {{
+                        div.innerHTML += '<div class="legend-item"><div class="legend-color" style="background:' + 
+                            getColorPrice(grades[i] + 1) + '"></div>' + labels[i] + '</div>';
+                    }}
+                }} else {{
+                    div.innerHTML = '<h4>Kauppoja (kpl)</h4>';
+                    var grades = [0, 5, 10, 20, 30, 50, 100];
+                    var labels = ['< 5', '5-10', '10-20', '20-30', '30-50', '50-100', '> 100'];
+                    for (var i = grades.length - 1; i >= 0; i--) {{
+                        div.innerHTML += '<div class="legend-item"><div class="legend-color" style="background:' + 
+                            getColorTransactions(grades[i] + 1) + '"></div>' + labels[i] + '</div>';
+                    }}
+                }}
+                return div;
+            }};
+            currentLegend.addTo(map);
+        }}
+        
+        // Luo legenda muutoksille
+        function createChangeLegend() {{
+            currentLegend = L.control({{position: 'bottomright'}});
+            currentLegend.onAdd = function(map) {{
+                var div = L.DomUtil.create('div', 'legend');
+                div.innerHTML = '<h4>Muutos-%</h4>';
+                var grades = [15, 10, 5, 0, -5, -10];
+                var labels = ['> 15%', '10% - 15%', '5% - 10%', '0% - 5%', '-5% - 0%', '-10% - -5%', '< -10%'];
                 for (var i = 0; i < grades.length; i++) {{
                     div.innerHTML += '<div class="legend-item"><div class="legend-color" style="background:' + 
                         getColorChange(grades[i] + 1) + '"></div>' + labels[i] + '</div>';
                 }}
+                div.innerHTML += '<div class="legend-item"><div class="legend-color" style="background:' + 
+                    getColorChange(-15) + '"></div>' + labels[6] + '</div>';
                 return div;
             }};
             currentLegend.addTo(map);
@@ -448,28 +513,31 @@ html = f'''<!DOCTYPE html>
         // Päivitä tilastot
         function updateStats() {{
             var mode = document.querySelector('input[name="mode"]:checked').value;
+            var buildingType = document.getElementById('building-type-select').value;
+            var metric = document.getElementById('metric-select').value;
+            var isPrice = (metric === 'keskihinta_aritm_nw');
+            var metricLabel = isPrice ? 'EUR/m²' : 'kpl';
             
-            if (mode === 'price') {{
+            if (mode === 'absolute') {{
                 var selectedYear = document.getElementById('year-select').value;
-                var prices = [];
+                var values = [];
                 
                 geojsonData.features.forEach(function(feature) {{
-                    if (feature.properties.prices[selectedYear]) {{
-                        prices.push(feature.properties.prices[selectedYear]);
-                    }}
+                    var value = getValue(feature, selectedYear, buildingType, metric);
+                    if (value) values.push(value);
                 }});
                 
-                if (prices.length > 0) {{
-                    var avg = Math.round(prices.reduce((a,b) => a + b, 0) / prices.length);
-                    var max = Math.max(...prices);
-                    var min = Math.min(...prices);
+                if (values.length > 0) {{
+                    var avg = Math.round(values.reduce((a,b) => a + b, 0) / values.length);
+                    var max = Math.max(...values);
+                    var min = Math.min(...values);
                     
-                    document.getElementById('stat-label').textContent = 'Keskihinta ' + selectedYear;
-                    document.getElementById('stat-value').textContent = avg.toLocaleString() + ' €/m²';
-                    document.getElementById('stat-max-label').textContent = 'Kallein';
-                    document.getElementById('stat-max').textContent = max.toLocaleString() + ' €/m²';
-                    document.getElementById('stat-min-label').textContent = 'Halvin';
-                    document.getElementById('stat-min').textContent = min.toLocaleString() + ' €/m²';
+                    document.getElementById('stat-label').textContent = (isPrice ? 'Keskihinta ' : 'Keskiarvo ') + selectedYear;
+                    document.getElementById('stat-value').textContent = avg.toLocaleString() + ' ' + metricLabel;
+                    document.getElementById('stat-max-label').textContent = isPrice ? 'Kallein' : 'Suurin';
+                    document.getElementById('stat-max').textContent = max.toLocaleString() + ' ' + metricLabel;
+                    document.getElementById('stat-min-label').textContent = isPrice ? 'Halvin' : 'Pienin';
+                    document.getElementById('stat-min').textContent = min.toLocaleString() + ' ' + metricLabel;
                 }}
             }} else {{
                 var yearFrom = document.getElementById('year-from').value;
@@ -477,11 +545,10 @@ html = f'''<!DOCTYPE html>
                 var changes = [];
                 
                 geojsonData.features.forEach(function(feature) {{
-                    var priceFrom = feature.properties.prices[yearFrom];
-                    var priceTo = feature.properties.prices[yearTo];
-                    
-                    if (priceFrom && priceTo) {{
-                        var change = ((priceTo - priceFrom) / priceFrom) * 100;
+                    var valueFrom = getValue(feature, yearFrom, buildingType, metric);
+                    var valueTo = getValue(feature, yearTo, buildingType, metric);
+                    if (valueFrom && valueTo && valueFrom > 0) {{
+                        var change = ((valueTo - valueFrom) / valueFrom) * 100;
                         changes.push(change);
                     }}
                 }});
@@ -525,14 +592,15 @@ html = f'''<!DOCTYPE html>
 </html>
 '''
 
+# Tallenna HTML
 with open('kartta.html', 'w', encoding='utf-8') as f:
     f.write(html)
 
-print(f"✅ Kartta luotu: kartta.html")
+print(f"\n✅ Kartta luotu: kartta.html")
 print(f"   Postinumeroalueita: {len(geojson_data['features'])}")
 print(f"   Saatavilla vuodet: {', '.join(available_years)}")
 print(f"   Ominaisuudet:")
 print(f"   - Polygon-pohjaiset alueet")
-print(f"   - Absoluuttiset hinnat vuosittain")
-print(f"   - Vuosimuutokset (%-muutos)")
-print(f"   - Vapaasti valittava aikaväli")
+print(f"   - Talotyypit: {', '.join(building_types.values())}")
+print(f"   - Mittarit: Neliöhinnat ja kauppojen lukumäärät")
+print(f"   - Absoluuttiset arvot ja vuosimuutokset")
