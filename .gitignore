@@ -19,6 +19,10 @@ bbox_data.json
 kartta.html
 # index.html säilytetään repossa (redirect kartta.html:ään)
 
+# Build/deployment kansiot
+public/
+dist/
+
 # IDE
 .vscode/
 .idea/

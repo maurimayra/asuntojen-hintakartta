@@ -48,10 +48,18 @@ jobs:
     - name: Luo interaktiivinen kartta
       run: python kartta_polygon.py
     
+    - name: Valmistele julkaisu
+      run: |
+        mkdir -p public
+        cp kartta.html public/
+        cp index.html public/
+        echo "Kartta valmis julkaistavaksi"
+        ls -lh public/
+    
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        path: '.'
+        path: 'public'
     
     - name: Deploy to GitHub Pages
       id: deployment
