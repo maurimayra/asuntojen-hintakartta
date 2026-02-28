@@ -76,12 +76,12 @@
             onEachFeature: function(feature, layer) {
                 layer.bindPopup(
                     '<div class="popup-content">' +
-                    '<h3>' + feature.properties.postcode + '</h3>' +
+                    '<h3>' + feature.properties.postinumer + '</h3>' +
                     '<div class="price">' + feature.properties.price.toLocaleString() + ' €/m²</div>' +
                     '<div class="details">' + feature.properties.name + '</div>' +
                     '</div>'
                 );
-                layer.postcode = feature.properties.postcode;
+                layer.postcode = feature.properties.postinumer;
             }
         }).addTo(map);
         
