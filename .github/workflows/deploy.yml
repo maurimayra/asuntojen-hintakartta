@@ -8,7 +8,7 @@ on:
   schedule:
     - cron: '0 3 1 * *'
   
-  # Aja kun README tai skriptit muuttuvat
+  # Aja kun skriptit muuttuvat
   push:
     branches: [ main ]
     paths:
@@ -22,8 +22,6 @@ jobs:
     
     permissions:
       contents: write
-      pages: write
-      id-token: write
     
     steps:
     - name: Checkout
@@ -51,16 +49,14 @@ jobs:
     - name: Valmistele julkaisu
       run: |
         mkdir -p public
-        cp kartta.html public/
-        cp index.html public/
-        echo "Kartta valmis julkaistavaksi"
+        cp kartta.html public/index.html
+        touch public/.nojekyll
+        echo "✅ Kartta valmis julkaistavaksi"
         ls -lh public/
     
-    - name: Upload artifact
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: 'public'
-    
     - name: Deploy to GitHub Pages
-      id: deployment
-      uses: actions/deploy-pages@v4
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./public
+        force_orphan: true
