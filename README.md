@@ -12,15 +12,16 @@ Interaktiivinen kartta Suomen asuntojen keskihinnoista postinumeroalueittain.
 # 1. Päivitä data
 python3 asuntohinnat.py
 
-# 2. Luo interaktiivinen kartta
-python3 hintakartta.py
+# 2. Päivitä interaktiivinen kartta
+python3 hintakartta.py   # Taulukko
+python3 kartta.py        # Kartta (Leaflet)
 ```
 
-Avaa `index.html` selaimessa.
+Avaa `kartta.html` selaimessa.
 
 ## Tiedostot
 
-- `asuntohinnat.py` - Data collector (Tilastokeskus API)
+- `asuntohinnat.py` - Data collector
 - `asuntohinnat.json` - Hintadata
-- `hintakartta.py` - HTML-generaattori
-- `index.html` - Interaktiivinen kartta
+- `kartta.py` / `kartta.html` - Interaktiivinen Leaflet-kartta
+- `hintakartta.py` / `index.html` - Taulukko
