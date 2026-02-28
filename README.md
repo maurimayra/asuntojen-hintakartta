@@ -67,11 +67,7 @@ Kartta näyttää:
 - `postinumerokoordinaatit.json` - Alueiden keskipisteet
 
 ### Kartat (generoituvat)
-- `kartta.html` - Interaktiivinen polygon-kartta (suositeltu)
-
-### Vanhemmat skriptit (legacy)
-- `kartta.py` - Vanha versio (ympyrämerkit)
-- `hintakartta.py` / `index.html` - Taulukkonäkymä
+- `kartta.html` - Interaktiivinen polygon-kartta
 
 ## Tekninen toteutus
 
