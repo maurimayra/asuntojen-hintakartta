@@ -19,6 +19,14 @@ bbox_data.json
 kartta.html
 # index.html säilytetään repossa (redirect kartta.html:ään)
 
+# Testiskriptit ja väliaikaiset tiedostot
+testi_*.py
+testi_*.html
+tarkista_*.py
+*.bak
+*.backup
+output.txt
+
 # Build/deployment kansiot
 public/
 dist/

@@ -358,6 +358,7 @@ html = f'''<!DOCTYPE html>
             var isPrice = (metric === 'keskihinta_aritm_nw');
             
             geoJsonLayer = L.geoJSON(geojsonData, {{
+                smoothFactor: 0,  // Ei geometrian yksinkertaistusta, tarkemmat rajat
                 style: function(feature) {{
                     var value = getValue(feature, selectedYear, buildingType, metric);
                     var color = value ? (isPrice ? getColorPrice(value) : getColorTransactions(value)) : '#ccc';
@@ -403,6 +404,7 @@ html = f'''<!DOCTYPE html>
             var yearTo = document.getElementById('year-to').value;
             
             geoJsonLayer = L.geoJSON(geojsonData, {{
+                smoothFactor: 0,  // Ei geometrian yksinkertaistusta, tarkemmat rajat
                 style: function(feature) {{
                     var valueFrom = getValue(feature, yearFrom, buildingType, metric);
                     var valueTo = getValue(feature, yearTo, buildingType, metric);

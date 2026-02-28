@@ -4,7 +4,7 @@ Interaktiivinen kartta Suomen asuntojen keskihinnoista ja kauppamääristä post
 
 **Datalähteet:** 
 - Asuntohinnat ja kauppamäärät: Tilastokeskus (StatFin) - Vanhojen osakeasuntojen neliöhinnat ja kauppojen lukumäärät postinumeroalueittain (taulukko ashi_13mu)
-- Postinumeroalueiden geometria: Paituli / TK Paavo 2025
+- Postinumeroalueiden geometria: Tilastokeskus geo.stat.fi (postialue:pno_tilasto) - Tarkat postinumeroalueet, ~240 koordinaattipistettä per alue
 
 **Huom:** * = Vuosi 2026 on ennuste, laskettu viimeisen 5 vuoden lineaarisen trendin perusteella
 
@@ -20,10 +20,11 @@ Interaktiivinen kartta Suomen asuntojen keskihinnoista ja kauppamääristä post
 - **Kaksi mittaria:**
   - Neliöhinnat (EUR/m²)
   - Kauppojen lukumäärä (kpl)
-- **770 postinumeroaluetta** joilla asuntohintadataa
+- **1723 postinumeroaluetta** joilla asuntohintadataa
 
 ### 🗺️ Karttaominaisuudet
-- **Polygon-pohjaiset postinumeroalueet** (tarkat rajat)
+- **Polygon-pohjaiset postinumeroalueet** (tarkat rajat, ei geometrian yksinkertaistusta)
+- **Korkea geometriatarkkuus** - Keskimäärin 240 koordinaattipistettä per alue
 - **Absoluuttiset arvot** - valitse vuosi, huoneistotyyppi ja mittari
 - **Vuosimuutokset** - vertaa kahta vuotta, näe %-muutokset
 - **Intuitiiviset väriskalat:**
@@ -62,7 +63,7 @@ Kartta päivittyy automaattisesti kerran kuukaudessa GitHub Actionsin kautta:
 # 1. Päivitä asuntohintadata Tilastokeskuksesta (2009-2025) ja laske ennuste (2026)
 python asuntohinnat.py
 
-# 2. Lataa postinumeroalueet Paitulin WFS-rajapinnasta
+# 2. Lataa postinumeroalueet Tilastokeskuksen WFS-rajapinnasta
 python lataa_postinumeroalueet.py
 
 # 3. Luo interaktiivinen kartta
@@ -77,32 +78,37 @@ Avaa `kartta.html` selaimessa.
 
 ### Dataskriptit
 - `asuntohinnat.py` - Hakee asuntohintadatan Tilastokeskuksesta (2009-2025) ja laskee ennusteen (2026)
-- `lataa_postinumeroalueet.py` - Hakee postinumeroalueiden geometriat Paitulista
+- `lataa_postinumeroalueet.py` - Hakee postinumeroalueiden tarkat geometriat Tilastokeskuksen WFS-rajapinnasta
 - `kartta_polygon.py` - Luo interaktiivisen kartan
 
 ### Datatiedostot (generoituvat)
 - `asuntohinnat.json` - Asuntohintadata vuosittain (2009-2026), huoneistotyypeittäin (~7.9 MB)
-- `postinumerot_hinnat.geojson` - Postinumeroalueiden geometriat + hinnat
+- `postinumerot_hinnat.geojson` - Postinumeroalueiden tarkat geometriat + hinnat (~16.6 MB)
 - `postinumerokoordinaatit.json` - Alueiden keskipisteet
 
 ### Kartat (generoituvat)
-- `kartta.html` - Interaktiivinen polygon-kartta (~6.8 MB)
+- `kartta.html` - Interaktiivinen polygon-kartta (~20.1 MB)
 
 ## Tekninen toteutus
 
 - **Karttakirjasto:** Leaflet 1.9.4
 - **Datalähde:** 
   - Asuntohinnat: Tilastokeskus StatFin API (ashi_13mu)
-  - Geometriat: Paituli WFS API (paituli:tike_paavo_2025)
+  - Geometriat: Tilastokeskus WFS API (postialue:pno_tilasto)
+- **Geometriatarkkuus:**
+  - 8 desimaalin koordinaattitarkkuus (WFS: `coordinate_precision:8`)
+  - Ei geometrian yksinkertaistusta (WFS: `decimation:NONE`, Leaflet: `smoothFactor:0`)
+  - Keskimäärin 240 koordinaattipistettä per postinumeroalue
 - **Koordinaattijärjestelmä:** WGS84 (EPSG:4326) kartalla, ETRS-TM35FIN (EPSG:3067) lähteessä
-- **Datan yhdistäminen:** Suodatetaan 3026 postinumeroalueesta vain ne 770, joilla on asuntohintadataa
+- **Datan yhdistäminen:** Suodatetaan 3018 postinumeroalueesta vain ne 1723, joilla on asuntohintadataa
 - **Ennustemenetelmä:** Lineaarinen trendi viimeisen 5 vuoden (2021-2025) datasta
 - **Datamäärä:** 
   - 18 vuotta (17 todellista + 1 ennuste)
   - 4 huoneistotyyppiä
   - 2 mittaria (hinta, kauppamäärä)
-  - 770 postinumeroaluetta
-  - ≈ 55,000 datapistettä
+  - 1723 postinumeroaluetta
+  - ≈ 123,000 datapistettä
+  - ≈ 414,000 koordinaattipistettä geometrioissa
 
 ### GitHub Actions deployment
 
@@ -110,10 +116,11 @@ Kartta päivittyy automaattisesti ilman manuaalista työtä:
 
 1. **Workflow ajastus:** Joka kuukauden 1. päivä klo 03:00 UTC
 2. **Datan haku:** 
-   - Tilastokeskuksen API → Asuntohinnat
-   - Paitulin WFS → Postinumeroalueiden geometriat
-3. **Kartan generointi:** Python-skriptit luovat kartta.html:n
-4. **Julkaisu:** GitHub Pages palvelee automaattisesti päivitetyn kartan
+   - Tilastokeskuksen StatFin API → Asuntohinnat (2009-2025)
+   - Tilastokeskuksen WFS API → Tarkat postinumeroalueiden geometriat
+3. **Ennusteet:** Lineaarinen trendianalyysi → 2026 ennusteet
+4. **Kartan generointi:** Python-skriptit luovat kartta.html:n
+5. **Julkaisu:** GitHub Pages palvelee automaattisesti päivitetyn kartan
 
 **Edut:**
 - ✅ Ei generoituja tiedostoja repositoriossa (repo pysyy kevyenä ~50 KB)
@@ -161,5 +168,5 @@ Kartta päivittyy automaattisesti ilman manuaalista työtä:
 ## Lähdeviitteet
 
 - Asuntohinnat: [Tilastokeskus StatFin](https://stat.fi/) - ashi_13mu
-- Postinumeroalueet: [Paituli / CSC](https://paituli.csc.fi/) - TK Paavo 2025
+- Postinumeroalueet: [Tilastokeskus geo.stat.fi](https://geo.stat.fi/) - postialue:pno_tilasto
 - Karttakirjasto: [Leaflet](https://leafletjs.com/)
