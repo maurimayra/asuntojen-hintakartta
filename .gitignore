@@ -17,7 +17,7 @@ bbox_data.json
 
 # Generoituvat HTML-kartat
 kartta.html
-index.html
+# index.html säilytetään repossa (redirect kartta.html:ään)
 
 # IDE
 .vscode/

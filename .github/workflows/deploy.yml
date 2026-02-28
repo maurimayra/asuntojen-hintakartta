@@ -1,0 +1,58 @@
+name: Päivitä ja julkaise asuntohintakartta
+
+on:
+  # Aja manuaalisesti
+  workflow_dispatch:
+  
+  # Aja automaattisesti joka kuukauden 1. päivä klo 03:00
+  schedule:
+    - cron: '0 3 1 * *'
+  
+  # Aja kun README tai skriptit muuttuvat
+  push:
+    branches: [ main ]
+    paths:
+      - '**.py'
+      - 'requirements.txt'
+      - '.github/workflows/deploy.yml'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Hae asuntohintadata
+      run: python asuntohinnat.py
+    
+    - name: Hae postinumeroalueet Paitulista
+      run: python lataa_postinumeroalueet.py
+    
+    - name: Luo interaktiivinen kartta
+      run: python kartta_polygon.py
+    
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: '.'
+    
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4

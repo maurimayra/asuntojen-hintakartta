@@ -17,7 +17,14 @@ pip install -r requirements.txt
 
 ## Käyttö
 
-### Täysin toistettava prosessi (suositeltu)
+### GitHub Pages (julkinen kartta)
+
+Kartta päivittyy automaattisesti kerran kuukaudessa GitHub Actionsin kautta:
+- 🌐 Käytä suoraan julkista versiota (linkki repositoryn kuvauksessa)
+- ⚙️ Automaattinen päivitys joka kuukauden 1. päivä
+- 🔄 Manuaalinen päivitys: Actions-välilehdellä → "Päivitä ja julkaise asuntohintakartta" → Run workflow
+
+### Paikallinen käyttö (kehitys/testaus)
 
 ```bash
 # 1. Päivitä asuntohintadata Tilastokeskuksesta
@@ -73,6 +80,23 @@ Kartta näyttää:
 - **Koordinaattijärjestelmä:** WGS84 (EPSG:4326) kartalla, ETRS-TM35FIN (EPSG:3067) lähteessä
 - **Datan yhdistäminen:** Suodatetaan 3026 postinumeroalueesta vain ne 770, joilla on asuntohintadataa
 - **Koko:** ~4.4 MB GeoJSON (sisältää polygon-geometriat)
+
+### GitHub Actions deployment
+
+Kartta päivittyy automaattisesti ilman manuaalista työtä:
+
+1. **Workflow ajastus:** Joka kuukauden 1. päivä klo 03:00 UTC
+2. **Datan haku:** 
+   - Tilastokeskuksen API → Asuntohinnat
+   - Paitulin WFS → Postinumeroalueiden geometriat
+3. **Kartan generointi:** Python-skriptit luovat kartta.html:n
+4. **Julkaisu:** GitHub Pages palvelee automaattisesti päivitetyn kartan
+
+**Edut:**
+- ✅ Ei generoituja tiedostoja repositoriossa (repo pysyy kevyenä ~50 KB)
+- ✅ Data aina ajantasalla ilman manuaalista päivitystä
+- ✅ Täysin toistettava prosessi (lähdekoodista valmiiseen karttaan)
+- ✅ Julkinen verkkopalvelu ilman palvelinkuluja
 
 ## Lähdeviitteet
 
